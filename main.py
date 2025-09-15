@@ -29,6 +29,28 @@ def age_from_birthday(birthday: str) -> str:
     except Exception:
         return "—"
 
+def height_to_inches(height_str: str) -> int:
+    """Convert height string like '6-8' to total inches (80)"""
+    try:
+        if pd.isna(height_str) or not height_str:
+            return 0
+        parts = str(height_str).split('-')
+        if len(parts) == 2:
+            feet = int(parts[0])
+            inches = int(parts[1])
+            return feet * 12 + inches
+        return 0
+    except Exception:
+        return 0
+
+def inches_to_height_str(inches: int) -> str:
+    """Convert inches back to feet-inches format like 80 -> '6-8'"""
+    if inches <= 0:
+        return "0-0"
+    feet = inches // 12
+    remaining_inches = inches % 12
+    return f"{feet}-{remaining_inches}"
+
 df = load_data("nba-mock-data/players.csv")
 
 st.title("🏀 NBA Player Directory (Local Demo)")
@@ -45,6 +67,55 @@ with st.sidebar:
     draft_year_min = int(df["draft_year"].min()) if "draft_year" in df else 1947
     draft_year_max = int(df["draft_year"].max()) if "draft_year" in df else 2025
     draft_range = st.slider("Draft year", draft_year_min, draft_year_max, (draft_year_min, draft_year_max))
+    
+    # Height filter
+    st.subheader("Height Filter")
+    # Convert all heights to inches for filtering
+    height_inches = df["height"].apply(height_to_inches)
+    min_height_inches = int(height_inches[height_inches > 0].min()) if len(height_inches[height_inches > 0]) > 0 else 60
+    max_height_inches = int(height_inches.max()) if len(height_inches) > 0 else 90
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        min_height = st.number_input(
+            f"Min Height (in)",
+            min_value=min_height_inches,
+            max_value=max_height_inches,
+            value=min_height_inches,
+            help=f"Range: {inches_to_height_str(min_height_inches)} to {inches_to_height_str(max_height_inches)}"
+        )
+    with col2:
+        max_height = st.number_input(
+            f"Max Height (in)",
+            min_value=min_height_inches,
+            max_value=max_height_inches,
+            value=max_height_inches,
+            help=f"Range: {inches_to_height_str(min_height_inches)} to {inches_to_height_str(max_height_inches)}"
+        )
+    
+    # Show height range in feet-inches format
+    st.caption(f"Selected range: {inches_to_height_str(min_height)} to {inches_to_height_str(max_height)}")
+    
+    # Weight filter
+    st.subheader("Weight Filter")
+    weight_min = int(df["weight"].min()) if "weight" in df else 160
+    weight_max = int(df["weight"].max()) if "weight" in df else 290
+    
+    col3, col4 = st.columns(2)
+    with col3:
+        min_weight = st.number_input(
+            "Min Weight (lbs)",
+            min_value=weight_min,
+            max_value=weight_max,
+            value=weight_min
+        )
+    with col4:
+        max_weight = st.number_input(
+            "Max Weight (lbs)",
+            min_value=weight_min,
+            max_value=weight_max,
+            value=weight_max
+        )
 
 # Filtering
 fdf = df.copy()
@@ -65,6 +136,23 @@ if sel_countries:
     fdf = fdf[fdf["country"].isin(sel_countries)]
 if "draft_year" in fdf:
     fdf = fdf[(fdf["draft_year"] >= draft_range[0]) & (fdf["draft_year"] <= draft_range[1])]
+
+# Height filtering
+if "height" in fdf.columns:
+    # Add validation for min/max height
+    if min_height > max_height:
+        st.error("Minimum height cannot be greater than maximum height")
+    else:
+        fdf_height_inches = fdf["height"].apply(height_to_inches)
+        fdf = fdf[(fdf_height_inches >= min_height) & (fdf_height_inches <= max_height)]
+
+# Weight filtering
+if "weight" in fdf.columns:
+    # Add validation for min/max weight
+    if min_weight > max_weight:
+        st.error("Minimum weight cannot be greater than maximum weight")
+    else:
+        fdf = fdf[(fdf["weight"] >= min_weight) & (fdf["weight"] <= max_weight)]
 
 st.write(f"Showing **{len(fdf)}** of {len(df)} players")
 
