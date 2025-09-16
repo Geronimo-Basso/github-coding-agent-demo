@@ -30,6 +30,14 @@ def age_from_birthday(birthday: str) -> str:
     except Exception:
         return "—"
 
+def height_to_inches(height_str: str) -> int:
+    """Convert height from 'feet-inches' format to total inches"""
+    try:
+        feet, inches = height_str.split('-')
+        return int(feet) * 12 + int(inches)
+    except Exception:
+        return 0
+
 df = load_data("nba-mock-data/players.csv")
 
 st.title("🏀 NBA Player Directory (Local Demo)")
@@ -46,6 +54,16 @@ with st.sidebar:
     draft_year_min = int(df["draft_year"].min()) if "draft_year" in df else 1947
     draft_year_max = int(df["draft_year"].max()) if "draft_year" in df else 2025
     draft_range = st.slider("Draft year", draft_year_min, draft_year_max, (draft_year_min, draft_year_max))
+    
+    # Height filter (convert to inches for filtering)
+    height_inches = df["height"].apply(height_to_inches)
+    height_min, height_max = int(height_inches.min()), int(height_inches.max())
+    height_range = st.slider("Height (inches)", height_min, height_max, (height_min, height_max))
+    st.caption(f"Height range: {height_range[0]}\" to {height_range[1]}\" (approx. {height_range[0]//12}'-{height_range[0]%12}\" to {height_range[1]//12}'-{height_range[1]%12}\")")
+    
+    # Weight filter  
+    weight_min, weight_max = int(df["weight"].min()), int(df["weight"].max())
+    weight_range = st.slider("Weight (pounds)", weight_min, weight_max, (weight_min, weight_max))
 
 # Filtering
 fdf = df.copy()
@@ -66,6 +84,13 @@ if sel_countries:
     fdf = fdf[fdf["country"].isin(sel_countries)]
 if "draft_year" in fdf:
     fdf = fdf[(fdf["draft_year"] >= draft_range[0]) & (fdf["draft_year"] <= draft_range[1])]
+
+# Height and weight filtering
+if "height" in fdf:
+    fdf_height_inches = fdf["height"].apply(height_to_inches)
+    fdf = fdf[(fdf_height_inches >= height_range[0]) & (fdf_height_inches <= height_range[1])]
+if "weight" in fdf:
+    fdf = fdf[(fdf["weight"] >= weight_range[0]) & (fdf["weight"] <= weight_range[1])]
 
 st.write(f"Showing **{len(fdf)}** of {len(df)} players")
 
