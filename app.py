@@ -11,7 +11,7 @@ def load_data(path: str) -> pd.DataFrame:
     df = pd.read_csv(path, dtype={"playerid": str})  # keep ids as strings for image paths
     # Basic normalization (helps if future CSVs tweak capitalization)
     df.columns = [c.strip().lower() for c in df.columns]
-    for col in ("first_name", "last_name", "position", "country", "school"):
+    for col in ("fname", "lname", "position", "country", "school"):
         if col in df.columns:
             df[col] = df[col].fillna("").astype(str).str.strip()
     return df
@@ -54,7 +54,7 @@ if q:
     ql = q.lower()
     def row_match(r):
         hay = " ".join([
-            r.get("first_name",""), r.get("last_name",""), r.get("position",""),
+            r.get("fname",""), r.get("lname",""), r.get("position",""),
             r.get("country",""), r.get("school","")
         ]).lower()
         return ql in hay
@@ -72,7 +72,7 @@ st.write(f"Showing **{len(fdf)}** of {len(df)} players")
 # Sort options
 sort_col = st.selectbox(
     "Sort by",
-    ["last_name", "first_name", "position", "country", "draft_year", "height", "weight", "birthday"],
+    ["lname", "fname", "position", "country", "draft_year", "height", "weight", "birthday"],
     index=0
 )
 ascending = st.toggle("Ascending", value=True)
@@ -94,7 +94,7 @@ def render_card(row):
                 unsafe_allow_html=True
             )
     with col2:
-        name = f"{row['first_name']} {row['last_name']}".strip()
+        name = f"{row['fname']} {row['lname']}".strip()
         st.markdown(f"### {name}")
         meta = []
         if "position" in row and row["position"]:
