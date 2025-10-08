@@ -11,6 +11,8 @@ A modern, interactive web application built with Streamlit for exploring NBA pla
 - **Position Filter**: Multi-select dropdown for specific positions (Guard, Forward, Center, etc.)
 - **Country Filter**: Filter players by their country of origin
 - **Draft Year Range**: Interactive slider to filter by draft year (2003-2022)
+- **Height Filter**: Range slider to filter by player height in inches (e.g., 69"-88" or 5'9"-7'4")
+- **Weight Filter**: Range slider to filter by player weight in pounds (160-290 lbs)
 
 ### 📊 Data Visualization
 - **Card Layout**: Beautiful player cards with photos and detailed information
@@ -115,7 +117,9 @@ The application uses a CSV dataset with the following fields:
 1. Select "Guard" from the Position filter
 2. Choose "USA" from the Country filter  
 3. Adjust the Draft Year slider to 2015-2020
-4. Sort by "height" to see the tallest guards
+4. Set Height filter to 72-78 inches (6'0"-6'6") to find guards in that range
+5. Set Weight filter to 190-220 lbs to narrow down by size
+6. Sort by "height" to see the tallest guards matching your criteria
 
 ### Browse and Explore
 - Use pagination to browse through all 548 players

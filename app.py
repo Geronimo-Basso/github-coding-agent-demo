@@ -30,6 +30,20 @@ def age_from_birthday(birthday: str) -> str:
     except Exception:
         return "—"
 
+def height_to_inches(height: str) -> int:
+    """Convert height string like '6-8' to total inches."""
+    try:
+        if pd.isna(height) or not height:
+            return None
+        parts = str(height).strip().split("-")
+        if len(parts) == 2:
+            feet = int(parts[0])
+            inches = int(parts[1])
+            return feet * 12 + inches
+        return None
+    except Exception:
+        return None
+
 df = load_data("nba-mock-data/players.csv")
 
 st.title("🏀 NBA Player Directory (Local Demo)")
@@ -46,6 +60,29 @@ with st.sidebar:
     draft_year_min = int(df["draft_year"].min()) if "draft_year" in df else 1947
     draft_year_max = int(df["draft_year"].max()) if "draft_year" in df else 2025
     draft_range = st.slider("Draft year", draft_year_min, draft_year_max, (draft_year_min, draft_year_max))
+    
+    # Height filter (in inches)
+    df["height_inches"] = df["height"].apply(height_to_inches)
+    height_min = int(df["height_inches"].min()) if df["height_inches"].notna().any() else 60
+    height_max = int(df["height_inches"].max()) if df["height_inches"].notna().any() else 90
+    height_range = st.slider(
+        "Height (inches)", 
+        height_min, 
+        height_max, 
+        (height_min, height_max),
+        help=f"Filter by player height. Range: {height_min}\" ({height_min//12}'-{height_min%12}\") to {height_max}\" ({height_max//12}'-{height_max%12}\")"
+    )
+    
+    # Weight filter (in pounds)
+    weight_min = int(df["weight"].min()) if "weight" in df else 150
+    weight_max = int(df["weight"].max()) if "weight" in df else 300
+    weight_range = st.slider(
+        "Weight (lbs)", 
+        weight_min, 
+        weight_max, 
+        (weight_min, weight_max),
+        help="Filter by player weight in pounds"
+    )
 
 # Filtering
 fdf = df.copy()
@@ -66,6 +103,12 @@ if sel_countries:
     fdf = fdf[fdf["country"].isin(sel_countries)]
 if "draft_year" in fdf:
     fdf = fdf[(fdf["draft_year"] >= draft_range[0]) & (fdf["draft_year"] <= draft_range[1])]
+
+# Height and weight filtering
+if "height_inches" in fdf:
+    fdf = fdf[(fdf["height_inches"] >= height_range[0]) & (fdf["height_inches"] <= height_range[1])]
+if "weight" in fdf:
+    fdf = fdf[(fdf["weight"] >= weight_range[0]) & (fdf["weight"] <= weight_range[1])]
 
 st.write(f"Showing **{len(fdf)}** of {len(df)} players")
 
